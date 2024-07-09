@@ -614,10 +614,10 @@ func (p *parser) setValue(key string, value any) {
 		tmpHash    any
 		ok         bool
 		hash       = p.mapping
-		keyContext = make(Key, 0, len(p.context)+1)
+		keyContext = make(Key, len(p.context)+1)
 	)
-	for _, k := range p.context {
-		keyContext = append(keyContext, k)
+	for i, k := range p.context {
+		keyContext[i] = k
 		if tmpHash, ok = hash[k]; !ok {
 			p.bug("Context for key '%s' has not been established.", keyContext)
 		}
@@ -632,7 +632,7 @@ func (p *parser) setValue(key string, value any) {
 			p.panicf("Key '%s' has already been defined.", keyContext)
 		}
 	}
-	keyContext = append(keyContext, key)
+	keyContext[len(p.context)] = key
 
 	if _, ok := hash[key]; ok {
 		// Normally redefining keys isn't allowed, but the key could have been
@@ -667,8 +667,8 @@ func (p *parser) setValue(key string, value any) {
 // Note that if `key` is empty, then the type given will be applied to the
 // current context (which is either a table or an array of tables).
 func (p *parser) setType(key string, typ tomlType, pos Position) {
-	keyContext := make(Key, 0, len(p.context)+1)
-	keyContext = append(keyContext, p.context...)
+	keyContext := make(Key, len(p.context), len(p.context)+1)
+	copy(keyContext, p.context)
 	if len(key) > 0 { // allow type setting for hashes
 		keyContext = append(keyContext, key)
 	}
